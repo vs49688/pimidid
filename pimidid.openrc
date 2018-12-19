@@ -1,0 +1,27 @@
+#!/sbin/openrc-run
+
+description="pimidid"
+
+pidfile=/run/pimidid.pid
+
+depend() {
+	need fluidsynth
+}
+
+start() {
+	ebegin "Starting $RC_SVCNAME"
+	start-stop-daemon --background --start \
+		--user root \
+		--make-pidfile \
+		--pidfile $pidfile \
+		--exec /usr/sbin/pimidid
+    eend $?
+}
+
+stop() {
+	ebegin "Stopping $RC_SVCNAME"
+	start-stop-daemon --stop --signal TERM --pidfile $pidfile
+	rm -f $pidfile
+	eend $?
+}
+
