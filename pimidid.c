@@ -114,10 +114,7 @@ static int locate_ports(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_po
 	);
 
 	if(pimidid_connect(seq, pinfo, s->fluid_port) < 0)
-	{
 		syslog(LOG_WARNING, "Connection failed (%s)\n", snd_strerror(errno));
-		return 0;
-	}
 
 	return 0;
 }
@@ -176,7 +173,7 @@ int main(int argc, char **argv)
 	pimidid_t pi;
 	if(pimidid_init(&pi) < 0)
 	{
-		fprintf(stderr, "Initialisation failure\n");
+		syslog(LOG_ERR, "Initialisation failure");
 		return 1;
 	}
 

@@ -34,12 +34,6 @@ int pimidid_init(pimidid_t *pi)
 	if((snd_seq_port_info_malloc(&pi->_fluid_port) < 0))
 		goto failure;
 
-	if((snd_seq_client_info_malloc(&pi->_dev_client) < 0))
-		goto failure;
-	
-	if((snd_seq_port_info_malloc(&pi->_dev_port) < 0))
-		goto failure;
-
 	if(snd_seq_open(&pi->seq, "default", SND_SEQ_OPEN_DUPLEX, 0) < 0)
 		goto failure;
 
@@ -84,12 +78,6 @@ void pimidid_deinit(pimidid_t *pi)
 
 	if(pi->_fluid_port)
 		snd_seq_port_info_free(pi->_fluid_port);
-
-	if(pi->_dev_client)
-		snd_seq_client_info_free(pi->_dev_client);
-
-	if(pi->_dev_port)
-		snd_seq_port_info_free(pi->_dev_port);
 }
 
 int pimidid_connect(snd_seq_t *seq, snd_seq_port_info_t *source, snd_seq_port_info_t *sink)

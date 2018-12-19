@@ -37,9 +37,6 @@ typedef struct pimidid
 	/* Storage */
 	snd_seq_client_info_t *_fluid_client;
 	snd_seq_port_info_t *_fluid_port;
-
-	snd_seq_client_info_t *_dev_client;
-	snd_seq_port_info_t *_dev_port;
 } pimidid_t;
 
 int pimidid_init(pimidid_t *pi);
