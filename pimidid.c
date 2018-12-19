@@ -226,27 +226,3 @@ int main(int argc, char **argv)
 	snd_config_update_free_global();
 	return 0;
 }
-
-
-
-
-pid_t start_fluidsynth(void)
-{
-	pid_t pid = fork();
-	if(pid < 0)
-		return pid;
-
-	if(pid == 0)
-	{
-		//execl("/usr/bin/fluidsynth", "/usr/bin/fluidsynth", "-si", "-z", "256", "/media/mmcblk0p1/SYNTHGMS.SF2", "-g", "2", NULL);
-
-		//fluidsynth -si -z 256 /usr/share/sounds/sf2/FluidR3_GM.sf2 -g 2 -a alsa
-		execl(
-			"/usr/bin/fluidsynth",
-			"/usr/bin/fluidsynth", "-si", "-z", "256", "-g", "2", "-a", "alsa", "/usr/share/sounds/sf2/FluidR3_GM.sf2", NULL
-		);
-		_exit(1);
-	}
-
-	return pid;
-}
