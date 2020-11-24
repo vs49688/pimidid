@@ -66,18 +66,24 @@ void pimidid_deinit(pimidid_t *pi)
 
 	if(pi->monitor)
 		udev_monitor_unref(pi->monitor);
+	pi->monitor = NULL;
+	pi->monitor_fd = -1;
 
 	if(pi->udev)
 		udev_unref(pi->udev);
+	pi->udev = NULL;
 
 	if(pi->seq)
 		snd_seq_close(pi->seq);
+	pi->seq = NULL;
 
 	if(pi->_fluid_client)
 		snd_seq_client_info_free(pi->_fluid_client);
+	pi->_fluid_client = NULL;
 
 	if(pi->_fluid_port)
 		snd_seq_port_info_free(pi->_fluid_port);
+	pi->_fluid_port = NULL;
 }
 
 int pimidid_connect(snd_seq_t *seq, snd_seq_port_info_t *source, snd_seq_port_info_t *sink)
