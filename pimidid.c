@@ -66,9 +66,6 @@ typedef struct pimidid_search
 
 	snd_seq_client_info_t *fluid_client;
 	snd_seq_port_info_t *fluid_port;
-
-	snd_seq_client_info_t *dev_client;
-	snd_seq_port_info_t *dev_port;
 } pimidid_search_t;
 
 /* Try to find the fluidsynth port. */
