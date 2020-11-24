@@ -153,7 +153,6 @@ static void sighandler(int signum)
 
 int main(int argc, char **argv)
 {
-	sigset_t mask;
 	struct sigaction act;
 	memset(&act, 0, sizeof(act));
 	act.sa_handler = sighandler;
@@ -201,7 +200,7 @@ int main(int argc, char **argv)
 				continue;
 
 			const char *action = udev_device_get_action(dev);
-			if(strcmp("add", action))
+			if(strcmp("add", action) != 0)
 				continue;
 
 			const char *node = udev_device_get_devnode(dev);
@@ -209,7 +208,7 @@ int main(int argc, char **argv)
 				continue;
 
 			/* FIXME: Is here a better way to do this? */
-			unsigned int card = -1, dard = -1;
+			unsigned int card, dard;
 			if(sscanf(node, "/dev/snd/midiC%uD%u", &card, &dard) != 2)
 				continue;
 
