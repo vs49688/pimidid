@@ -35,6 +35,7 @@ typedef struct pimidid
 	struct udev_monitor *monitor;
 	int monitor_fd;
 
+	char 				 fl_portname[64];
 	fluid_settings_t     *fl_settings;
 	fluid_synth_t        *fl_synth;
 	fluid_midi_driver_t  *fl_mdriver;

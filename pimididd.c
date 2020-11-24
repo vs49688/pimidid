@@ -46,9 +46,10 @@ int pimidid_init(pimidid_t *pi)
 	if(fluid_settings_setstr(pi->fl_settings, "midi.driver", "alsa_seq") == FLUID_FAILED)
 		goto failure;
 
-//	/* TODO: Make a command-line parameter */
-//	if(fluid_settings_setstr(pi->fl_settings, "midi.portname", "pimidid") == FLUID_FAILED)
-//		goto failure;
+	snprintf(pi->fl_portname, sizeof(pi->fl_portname) - 1, "pimidid-%d", (int)getpid());
+	pi->fl_portname[sizeof(pi->fl_portname) - 1] = '\0';
+	if(fluid_settings_setstr(pi->fl_settings, "midi.portname", pi->fl_portname) == FLUID_FAILED)
+		goto failure;
 
 	if(fluid_settings_setstr(pi->fl_settings, "audio.driver", "alsa") == FLUID_FAILED)
 		goto failure;

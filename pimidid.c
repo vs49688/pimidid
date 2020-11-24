@@ -36,6 +36,10 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 #define syslog(level, fmt, ...) fprintf(stderr, fmt, __VA_ARGS__)
 #define vsyslog(level, fmt, ap) vfprintf(stderr, fmt, ap)
 
+
+/* Set to 1 to find our embedded FluidSynth's port. */
+#define SEARCH_EMBEDDED_SYNTH 1
+
 static void error_handler(const char *file, int line, const char *function, int err, const char *fmt, ...)
 {
 	va_list arg;
@@ -75,9 +79,16 @@ static int locate_fluidstynth(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_
 	if(s->fluid_port)
 		return 0;
 
+#if SEARCH_EMBEDDED_SYNTH
+	/* FluidSynth will set both the client and portname to "midi.portname" */
+	const char *name = snd_seq_client_info_get_name(cinfo);
+	if(!fluid_settings_str_equal(s->pi->fl_settings, "midi.portname", name))
+		return 0;
+#else
 	const char *name = snd_seq_client_info_get_name(cinfo);
 	if(strstr(name, "FLUID") != name)
 		return 0;
+#endif
 
 	unsigned int caps = snd_seq_port_info_get_capability(pinfo);
 
@@ -90,6 +101,11 @@ static int locate_fluidstynth(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_
 	s->fluid_port = s->pi->_fluid_port;
 	snd_seq_port_info_copy(s->fluid_port, pinfo);
 
+#if SEARCH_EMBEDDED_SYNTH
+	const char *pname = snd_seq_port_info_get_name(s->fluid_port);
+	if(!fluid_settings_str_equal(s->pi->fl_settings, "midi.portname", pname))
+		return 0;
+#endif
 	return 1;
 }
 
