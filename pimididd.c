@@ -22,6 +22,8 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 */
 #include "pimidid.h"
 
+#define SOUNDFONT "/nix/store/djlzrj8xhdmxf4sq99pfxn8k7k9p85hr-Fluid-3/share/soundfonts/FluidR3_GM2-2.sf2"
+
 int pimidid_init(pimidid_t *pi)
 {
 	memset(pi, 0, sizeof(pimidid_t));
@@ -34,7 +36,47 @@ int pimidid_init(pimidid_t *pi)
 	if((snd_seq_port_info_malloc(&pi->_fluid_port) < 0))
 		goto failure;
 
+	if(!(pi->fl_settings = new_fluid_settings()))
+		goto failure;
+
+	/* TODO: Make a command-line parameter */
+	if(fluid_settings_setint(pi->fl_settings, "synth.cpu-cores", 4) == FLUID_FAILED)
+		goto failure;
+
+	if(fluid_settings_setstr(pi->fl_settings, "midi.driver", "alsa_seq") == FLUID_FAILED)
+		goto failure;
+
+//	/* TODO: Make a command-line parameter */
+//	if(fluid_settings_setstr(pi->fl_settings, "midi.portname", "pimidid") == FLUID_FAILED)
+//		goto failure;
+
+	if(fluid_settings_setstr(pi->fl_settings, "audio.driver", "alsa") == FLUID_FAILED)
+		goto failure;
+
+	if(!(pi->fl_synth = new_fluid_synth(pi->fl_settings)))
+		goto failure;
+
+	/* TODO: Make a command-line parameter */
+	if(fluid_synth_sfload(pi->fl_synth, SOUNDFONT, 1) == FLUID_FAILED)
+		goto failure;
+
 	if(snd_seq_open(&pi->seq, "default", SND_SEQ_OPEN_DUPLEX, 0) < 0)
+		goto failure;
+
+	/*
+	 * Create an external input port for debugging.
+	 * Send all events to our synth.
+	 */
+	pi->fl_mdriver = new_fluid_midi_driver(
+		pi->fl_settings,
+		fluid_synth_handle_midi_event,
+		pi->fl_synth
+	);
+
+	if(pi->fl_mdriver == NULL)
+		goto failure;
+
+	if((pi->fl_adriver = new_fluid_audio_driver(pi->fl_settings, pi->fl_synth)) == NULL)
 		goto failure;
 
 	/* Setup udev. */
@@ -72,6 +114,24 @@ void pimidid_deinit(pimidid_t *pi)
 	if(pi->udev)
 		udev_unref(pi->udev);
 	pi->udev = NULL;
+
+
+	if(pi->fl_adriver)
+		delete_fluid_audio_driver(pi->fl_adriver);
+	pi->fl_adriver = NULL;
+
+	if(pi->fl_mdriver)
+		delete_fluid_midi_driver(pi->fl_mdriver);
+	pi->fl_mdriver = NULL;
+
+	if(pi->fl_synth)
+		delete_fluid_synth(pi->fl_synth);
+	pi->fl_synth = NULL;
+
+	if(pi->fl_settings)
+		delete_fluid_settings(pi->fl_settings);
+	pi->fl_settings = NULL;
+
 
 	if(pi->seq)
 		snd_seq_close(pi->seq);

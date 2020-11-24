@@ -25,6 +25,7 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <libudev.h>
 #include <alsa/asoundlib.h>
+#include <fluidsynth.h>
 
 typedef struct pimidid
 {
@@ -33,6 +34,11 @@ typedef struct pimidid
 	struct udev *udev;
 	struct udev_monitor *monitor;
 	int monitor_fd;
+
+	fluid_settings_t     *fl_settings;
+	fluid_synth_t        *fl_synth;
+	fluid_midi_driver_t  *fl_mdriver;
+	fluid_audio_driver_t *fl_adriver;
 
 	/* Storage */
 	snd_seq_client_info_t *_fluid_client;
