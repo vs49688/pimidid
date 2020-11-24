@@ -90,8 +90,6 @@ static int locate_fluidstynth(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_
 		return 0;
 #endif
 
-	unsigned int caps = snd_seq_port_info_get_capability(pinfo);
-
 	if(!perm_ok(pinfo, SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE))
 		return 0;
 
