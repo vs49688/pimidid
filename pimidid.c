@@ -28,8 +28,13 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 #include <sys/select.h>
 #include <alsa/asoundlib.h>
 #include <libudev.h>
-#include <syslog.h>
+//#include <syslog.h>
 #include "pimidid.h"
+
+#define LOG_ERR 0
+#define openlog(x, y, z)
+#define syslog(level, fmt, ...) fprintf(stderr, fmt, __VA_ARGS__)
+#define vsyslog(level, fmt, ap) vfprintf(stderr, fmt, ap)
 
 static void error_handler(const char *file, int line, const char *function, int err, const char *fmt, ...)
 {
