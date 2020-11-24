@@ -17,7 +17,9 @@ add_library(udev INTERFACE)
 target_link_libraries(udev INTERFACE ${UDEV_LIBRARIES})
 target_include_directories(udev INTERFACE ${UDEV_INCLUDE_DIRS})
 
+find_package(FluidSynth REQUIRED)
+
 add_executable(pimidid pimidid.c pimididd.c pimidid.h)
 
 target_compile_definitions(pimidid PUBLIC -D_POSIX_C_SOURCE=199309L -D_GNU_SOURCE)
-target_link_libraries(pimidid ALSA udev)
+target_link_libraries(pimidid ALSA udev FluidSynth::FluidSynth)
