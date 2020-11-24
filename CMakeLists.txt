@@ -8,7 +8,7 @@ find_package(ALSA REQUIRED)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 
 # https://github.com/rpavlik/cmake-modules/blob/master/Findudev.cmake
-find_package(udev REQUIRED)
+find_package(UDEV REQUIRED)
 
 add_executable(pimidid pimidid.c pimididd.c pimidid.h)
 
