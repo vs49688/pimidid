@@ -16,13 +16,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #include "pimidid.h"
+#include "rpi.h"
 
 //#define SOUNDFONT "/nix/store/djlzrj8xhdmxf4sq99pfxn8k7k9p85hr-Fluid-3/share/soundfonts/FluidR3_GM2-2.sf2"
 #define SOUNDFONT "/nix/store/yv5d8amrixrmailxwc03m08xscs7zvz5-Fluid-3/share/soundfonts/FluidR3_GM2-2.sf2"
 
-int pimidid_init(pimidid_t *pi)
+int pimidid_init(pimidid_t *pi, snd_ctl_t *ctl)
 {
 	memset(pi, 0, sizeof(pimidid_t));
+
+	pi->ctl = ctl;
 	pi->monitor_fd = -1;
 
 	/* Alloc storage. */
@@ -47,7 +50,14 @@ int pimidid_init(pimidid_t *pi)
 	if(fluid_settings_setstr(pi->fl_settings, "midi.portname", pi->fl_portname) == FLUID_FAILED)
 		goto failure;
 
+	/* TODO: Make a command-line parameter */
+	if(fluid_settings_setint(pi->fl_settings, "audio.period-size", 444) == FLUID_FAILED)
+		goto failure;
+
 	if(fluid_settings_setstr(pi->fl_settings, "audio.driver", "alsa") == FLUID_FAILED)
+		goto failure;
+
+	if(fluid_settings_setstr(pi->fl_settings, "audio.alsa.device", snd_ctl_name(pi->ctl)) == FLUID_FAILED)
 		goto failure;
 
 	if(!(pi->fl_synth = new_fluid_synth(pi->fl_settings)))

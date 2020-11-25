@@ -24,6 +24,7 @@
 
 typedef struct pimidid
 {
+	snd_ctl_t *ctl;
 	snd_seq_t *seq;
 
 	struct udev *udev;
@@ -41,7 +42,7 @@ typedef struct pimidid
 	snd_seq_port_info_t *_fluid_port;
 } pimidid_t;
 
-int pimidid_init(pimidid_t *pi);
+int pimidid_init(pimidid_t *pi, snd_ctl_t *ctl);
 void pimidid_deinit(pimidid_t *pi);
 int pimidid_connect(snd_seq_t *seq, snd_seq_port_info_t *source, snd_seq_port_info_t *sink);
 
