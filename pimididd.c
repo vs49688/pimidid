@@ -64,10 +64,7 @@ int pimidid_init(pimidid_t *pi)
 	if(snd_seq_open(&pi->seq, "default", SND_SEQ_OPEN_DUPLEX, 0) < 0)
 		goto failure;
 
-	/*
-	 * Create an external input port for debugging.
-	 * Send all events to our synth.
-	 */
+	/* Create an external input port. Send all events to our synth. */
 	pi->fl_mdriver = new_fluid_midi_driver(
 		pi->fl_settings,
 		fluid_synth_handle_midi_event,
