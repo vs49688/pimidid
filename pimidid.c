@@ -164,6 +164,31 @@ static void sighandler(int signum)
 	caught_signal = signum;
 }
 
+static snd_ctl_t *open_bcm2835_card()
+{
+	int err, card;
+	snd_ctl_t *handle;
+
+	if((err = rpi_get_alsa_index(&card)) < 0) {
+		fprintf(stderr, "pimidid: error: unable to locate BCM2835 card: %s\n", snd_strerror(err));
+		return NULL;
+	}
+
+	printf("pimidid: info: found BCM2835 card at hw:%d\n", card);
+
+	if((err = rpi_snd_ctl_open_by_index(&handle, card, 0)) < 0) {
+		fprintf(stderr, "pimidid: error: unable to open hw:%d: %s\n", card, snd_strerror(err));
+		return NULL;
+	}
+
+	if((err = rpi_set_audio_route(handle, RPI_AUDIO_ROUTE_35mm)) < 0) {
+		fprintf(stderr, "pimidid: error: error configuring audio route: %s", snd_strerror(err));
+		return NULL;
+	}
+
+	return handle;
+}
+
 int main(int argc, char **argv)
 {
 	struct sigaction act;
@@ -182,10 +207,15 @@ int main(int argc, char **argv)
 
 	printf("pimidid: info: starting up, pid = %d\n", (int)getpid());
 
+	snd_ctl_t *handle = open_bcm2835_card();
+	if(handle == NULL)
+		return 1;
+
 	pimidid_t pi;
-	if(pimidid_init(&pi) < 0)
+	if(pimidid_init(&pi, handle) < 0)
 	{
 		fprintf(stderr, "pimidid: error: initialisation failure\n");
+		snd_ctl_close(handle);
 		return 1;
 	}
 
@@ -238,6 +268,7 @@ int main(int argc, char **argv)
 	}
 
 	pimidid_deinit(&pi);
+	snd_ctl_close(handle);
 	snd_config_update_free_global();
 	return 0;
 }
