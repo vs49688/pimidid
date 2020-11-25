@@ -1,25 +1,20 @@
 /*
-pimidid
-
-https://github.com/vs49688/pimidid
-
-Licensed under the GNU General Public License v2.0 only <https://spdx.org/licenses/GPL-2.0-only.html>
-SPDX-License-Identifier: GPL-2.0-only
-Copyright (C) 2018 Zane van Iperen
-
-This program is free software; you can redistribute it and/or modify
-it undertheterms of the GNU General Public License as published by
-the Free Software Foundation; version 2.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software Foundation, Inc.,
-51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. 
-*/
+ * pimidid - Copyright (C) 2020 Zane van Iperen.
+ *    Contact: zane@zanevaniperen.com
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2, and only
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 #ifndef _PIMIDID_H
 #define _PIMIDID_H
 
