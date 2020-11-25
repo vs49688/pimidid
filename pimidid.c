@@ -189,6 +189,9 @@ static snd_ctl_t *open_bcm2835_card()
 	return handle;
 }
 
+//#define SOUNDFONT "/nix/store/djlzrj8xhdmxf4sq99pfxn8k7k9p85hr-Fluid-3/share/soundfonts/FluidR3_GM2-2.sf2"
+#define SOUNDFONT "/nix/store/yv5d8amrixrmailxwc03m08xscs7zvz5-Fluid-3/share/soundfonts/FluidR3_GM2-2.sf2"
+
 int main(int argc, char **argv)
 {
 	struct sigaction act;
@@ -212,7 +215,7 @@ int main(int argc, char **argv)
 		return 1;
 
 	pimidid_t pi;
-	if(pimidid_init(&pi, handle) < 0)
+	if(pimidid_init(&pi, handle, SOUNDFONT, 4, 444) < 0)
 	{
 		fprintf(stderr, "pimidid: error: initialisation failure\n");
 		snd_ctl_close(handle);

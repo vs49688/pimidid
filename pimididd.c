@@ -18,10 +18,13 @@
 #include "pimidid.h"
 #include "rpi.h"
 
-//#define SOUNDFONT "/nix/store/djlzrj8xhdmxf4sq99pfxn8k7k9p85hr-Fluid-3/share/soundfonts/FluidR3_GM2-2.sf2"
-#define SOUNDFONT "/nix/store/yv5d8amrixrmailxwc03m08xscs7zvz5-Fluid-3/share/soundfonts/FluidR3_GM2-2.sf2"
-
-int pimidid_init(pimidid_t *pi, snd_ctl_t *ctl)
+int pimidid_init(
+	pimidid_t *pi,
+	snd_ctl_t *ctl,
+	const char *sf2,
+	int cpu_cores,
+	int period_size
+)
 {
 	memset(pi, 0, sizeof(pimidid_t));
 
@@ -38,8 +41,7 @@ int pimidid_init(pimidid_t *pi, snd_ctl_t *ctl)
 	if(!(pi->fl_settings = new_fluid_settings()))
 		goto failure;
 
-	/* TODO: Make a command-line parameter */
-	if(fluid_settings_setint(pi->fl_settings, "synth.cpu-cores", 4) == FLUID_FAILED)
+	if(fluid_settings_setint(pi->fl_settings, "synth.cpu-cores", cpu_cores) == FLUID_FAILED)
 		goto failure;
 
 	if(fluid_settings_setstr(pi->fl_settings, "midi.driver", "alsa_seq") == FLUID_FAILED)
@@ -50,8 +52,7 @@ int pimidid_init(pimidid_t *pi, snd_ctl_t *ctl)
 	if(fluid_settings_setstr(pi->fl_settings, "midi.portname", pi->fl_portname) == FLUID_FAILED)
 		goto failure;
 
-	/* TODO: Make a command-line parameter */
-	if(fluid_settings_setint(pi->fl_settings, "audio.period-size", 444) == FLUID_FAILED)
+	if(fluid_settings_setint(pi->fl_settings, "audio.period-size", period_size) == FLUID_FAILED)
 		goto failure;
 
 	if(fluid_settings_setstr(pi->fl_settings, "audio.driver", "alsa") == FLUID_FAILED)
@@ -63,8 +64,7 @@ int pimidid_init(pimidid_t *pi, snd_ctl_t *ctl)
 	if(!(pi->fl_synth = new_fluid_synth(pi->fl_settings)))
 		goto failure;
 
-	/* TODO: Make a command-line parameter */
-	if(fluid_synth_sfload(pi->fl_synth, SOUNDFONT, 1) == FLUID_FAILED)
+	if(fluid_synth_sfload(pi->fl_synth, sf2, 1) == FLUID_FAILED)
 		goto failure;
 
 	if(snd_seq_open(&pi->seq, "default", SND_SEQ_OPEN_DUPLEX, 0) < 0)
