@@ -23,3 +23,6 @@ add_executable(pimidid pimidid.c pimididd.c pimidid.h)
 
 target_compile_definitions(pimidid PUBLIC -D_POSIX_C_SOURCE=199309L -D_GNU_SOURCE)
 target_link_libraries(pimidid ALSA udev FluidSynth::FluidSynth)
+
+add_executable(routetest routetest.c rpi.c rpi.h)
+target_link_libraries(routetest ALSA)
