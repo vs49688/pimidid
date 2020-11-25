@@ -22,13 +22,8 @@
 #include <sys/select.h>
 #include <alsa/asoundlib.h>
 #include <libudev.h>
-//#include <syslog.h>
 #include "pimidid.h"
-
-#define LOG_ERR 0
-#define openlog(x, y, z)
-#define syslog(level, fmt, ...) fprintf(stderr, fmt, __VA_ARGS__)
-#define vsyslog(level, fmt, ap) vfprintf(stderr, fmt, ap)
+#include "rpi.h"
 
 
 /* Set to 1 to find our embedded FluidSynth's port. */
@@ -36,18 +31,28 @@
 
 static void error_handler(const char *file, int line, const char *function, int err, const char *fmt, ...)
 {
+	const char *errs;
+	FILE *fp;
 	va_list arg;
 
-	if (err == ENOENT)	/* Ignore those misleading "warnings" */
-		return;
+	if(err) {
+		errs = "error";
+		fp = stderr;
+	} else {
+		errs = "info";
+		fp = stdout;
+	}
 
-	syslog(LOG_ERR, "ALSA lib %s:%i:(%s):", file, line, function);
+	fprintf(fp, "alsa: %s: %s:%i:(%s):", errs, file, line, function);
 	va_start(arg, fmt);
-	vsyslog(LOG_ERR, fmt, arg);
-	if(err)
-		syslog(LOG_ERR, "  %s", snd_strerror(err));
-
+	vfprintf(fp, fmt, arg);
 	va_end(arg);
+
+	if(err) {
+		fprintf(fp, ": %s", snd_strerror(err));
+	}
+
+	fputc('\n', fp);
 }
 
 #define perm_ok(pinfo,bits) ((snd_seq_port_info_get_capability(pinfo) & (bits)) == (bits))
@@ -115,8 +120,7 @@ static int locate_ports(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_po
 	if(!perm_ok(pinfo, SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_SUBS_READ))
 		return 0;
 
-	syslog(LOG_INFO,
-		"Found DEVICE port at %3d:%d, connecting to %d:%d...\n",
+	printf("pimidid: info: Found DEVICE port at %3d:%d, connecting to %d:%d...\n",
 		snd_seq_client_info_get_client(cinfo),
 		snd_seq_port_info_get_port(pinfo),
 		snd_seq_client_info_get_client(s->fluid_client),
@@ -124,7 +128,7 @@ static int locate_ports(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_po
 	);
 
 	if(pimidid_connect(seq, pinfo, s->fluid_port) < 0)
-		syslog(LOG_WARNING, "Connection failed (%s)\n", snd_strerror(errno));
+		printf("pimidid: warning: Connection failed (%s)\n", snd_strerror(errno));
 
 	return 0;
 }
@@ -146,15 +150,14 @@ static void do_connect(pimidid_t *pi, int card)
 	if(!s.fluid_port)
 		return;
 
-	syslog(LOG_INFO,
-		"Found  FLUID port at %3d:%d...\n",
+	printf("pimidid: info: Found  FLUID port at %3d:%d...\n",
 		snd_seq_client_info_get_client(s.fluid_client),
 		snd_seq_port_info_get_port(s.fluid_port)
 	);
 	do_search_port(pi->seq, locate_ports, &s);
 }
 
-static int caught_signal = 0;
+volatile sig_atomic_t caught_signal = 0;
 
 static void sighandler(int signum)
 {
@@ -177,12 +180,12 @@ int main(int argc, char **argv)
 	sigaction(SIGINT, &act, NULL);
 	sigaction(SIGHUP, &act, NULL);
 
-	openlog("pimidid", LOG_PERROR | LOG_PID, LOG_DAEMON);
+	printf("pimidid: info: starting up, pid = %d\n", (int)getpid());
 
 	pimidid_t pi;
 	if(pimidid_init(&pi) < 0)
 	{
-		syslog(LOG_ERR, "Initialisation failure");
+		fprintf(stderr, "pimidid: error: initialisation failure\n");
 		return 1;
 	}
 
@@ -198,7 +201,13 @@ int main(int argc, char **argv)
 		int ret = select(pi.monitor_fd + 1, &fds, NULL, NULL, NULL);
 		if(ret < 0 && errno == EINTR)
 		{
-			if(caught_signal == SIGINT || caught_signal == SIGTERM)
+			int sig = caught_signal;
+			caught_signal = 0;
+
+			if(sig)
+				printf("pimidid: trace: caught signal %d\n", sig);
+
+			if(sig == SIGINT || sig == SIGTERM)
 				break;
 
 			do_connect(&pi, -1);
