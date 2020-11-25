@@ -17,7 +17,8 @@
  */
 #include "pimidid.h"
 
-#define SOUNDFONT "/nix/store/djlzrj8xhdmxf4sq99pfxn8k7k9p85hr-Fluid-3/share/soundfonts/FluidR3_GM2-2.sf2"
+//#define SOUNDFONT "/nix/store/djlzrj8xhdmxf4sq99pfxn8k7k9p85hr-Fluid-3/share/soundfonts/FluidR3_GM2-2.sf2"
+#define SOUNDFONT "/nix/store/yv5d8amrixrmailxwc03m08xscs7zvz5-Fluid-3/share/soundfonts/FluidR3_GM2-2.sf2"
 
 int pimidid_init(pimidid_t *pi)
 {
