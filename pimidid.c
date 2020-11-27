@@ -17,6 +17,7 @@
  */
 #include <stdio.h>
 #include <stdarg.h>
+#include <limits.h>
 #include <unistd.h>
 #include <signal.h>
 #include <sys/select.h>
@@ -24,7 +25,80 @@
 #include <libudev.h>
 #include "pimidid.h"
 #include "rpi.h"
+#include "parg.h"
 
+static struct parg_option argdefs[] = {
+    {"nproc",     PARG_REQARG, NULL, 'n'},
+    {"period",    PARG_REQARG, NULL, 'p'},
+    {"help",      PARG_NOARG,  NULL, 'h'}
+};
+
+typedef struct args_t
+{
+    const char *soundfont;
+    int        nproc;
+    int        period;
+} args_t;
+
+static int parse_args(int argc, char **argv, args_t *args)
+{
+    int has_nproc = 0, has_period = 0;
+    unsigned long nproc  = 1;
+    unsigned long period = 444; /* This seems enforced on RPi3. */
+    struct parg_state ps;
+
+    parg_init(&ps);
+    args->soundfont  = NULL;
+    args->period     = 0;
+    args->nproc      = 0;
+
+    for(int c; (c = parg_getopt_long(&ps, argc, argv, "f:n:p:h", argdefs, NULL)) != -1; ) {
+        switch(c) {
+            case 1:
+                if(args->soundfont != NULL)
+                    goto usage;
+                args->soundfont = ps.optarg;
+                break;
+
+            case 'n':
+                if(has_nproc)
+                    goto usage;
+                errno = 0;
+                nproc = strtoull(ps.optarg, NULL, 10);
+                if(errno == ERANGE || nproc > INT_MAX)
+                    goto usage;
+
+                has_nproc = 1;
+                break;
+
+            case 'p':
+                if(has_period)
+                    goto usage;
+                errno = 0;
+                period = strtoul(ps.optarg, NULL, 10);
+                if(errno == ERANGE || period > INT_MAX)
+                    goto usage;
+
+                has_period = 1;
+                break;
+
+            case 'h':
+            default:
+                goto usage;
+        }
+    }
+
+    if(args->soundfont == NULL)
+        goto usage;
+
+    args->nproc = (int)nproc;
+    args->period = (int)period;
+    return 0;
+
+usage:
+    fprintf(stderr, "Usage: %s [<--nproc|-n> <nproc>] [--period|-p <period>] <soundfont>\n", argv[0]);
+    return -1;
+}
 
 /* Set to 1 to find our embedded FluidSynth's port. */
 #define SEARCH_EMBEDDED_SYNTH 1
@@ -189,11 +263,12 @@ static snd_ctl_t *open_bcm2835_card()
 	return handle;
 }
 
-//#define SOUNDFONT "/nix/store/djlzrj8xhdmxf4sq99pfxn8k7k9p85hr-Fluid-3/share/soundfonts/FluidR3_GM2-2.sf2"
-#define SOUNDFONT "/nix/store/yv5d8amrixrmailxwc03m08xscs7zvz5-Fluid-3/share/soundfonts/FluidR3_GM2-2.sf2"
-
 int main(int argc, char **argv)
 {
+	args_t args;
+	if(parse_args(argc, argv, &args) < 0)
+		return 2;
+
 	struct sigaction act;
 	memset(&act, 0, sizeof(act));
 	act.sa_handler = sighandler;
@@ -215,7 +290,7 @@ int main(int argc, char **argv)
 		return 1;
 
 	pimidid_t pi;
-	if(pimidid_init(&pi, handle, SOUNDFONT, 4, 444) < 0)
+	if(pimidid_init(&pi, handle, args.soundfont, args.nproc, args.period) < 0)
 	{
 		fprintf(stderr, "pimidid: error: initialisation failure\n");
 		snd_ctl_close(handle);
