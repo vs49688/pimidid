@@ -295,25 +295,35 @@ static void sighandler(int signum)
 	caught_signal = signum;
 }
 
-static snd_ctl_t *open_bcm2835_card()
+static snd_ctl_t *open_card(const char *device, int route)
 {
 	int err, card;
 	snd_ctl_t *handle;
 
-	if((err = rpi_get_alsa_index(&card)) < 0) {
-		fprintf(stderr, "pimidid: error: unable to locate BCM2835 card: %s\n", snd_strerror(err));
-		return NULL;
+	if(device == NULL) {
+		if((err = rpi_get_alsa_index(&card)) < 0) {
+			fprintf(stderr, "pimidid: error: unable to locate BCM2835 card: %s\n", snd_strerror(err));
+			return NULL;
+		}
+
+		printf("pimidid: info: found BCM2835 card at hw:%d\n", card);
+
+		if((err = rpi_snd_ctl_open_by_index(&handle, card, 0)) < 0) {
+			fprintf(stderr, "pimidid: error: unable to open hw:%d: %s\n", card, snd_strerror(err));
+			return NULL;
+		}
+	} else {
+		if((err = snd_ctl_open(&handle, device, 0)) < 0) {
+			fprintf(stderr, "pimidid: error: unable to open %s: %s\n", device, snd_strerror(err));
+			return NULL;
+		}
 	}
 
-	printf("pimidid: info: found BCM2835 card at hw:%d\n", card);
+	if(route < RPI_AUDIO_ROUTE_MIN)
+		return handle;
 
-	if((err = rpi_snd_ctl_open_by_index(&handle, card, 0)) < 0) {
-		fprintf(stderr, "pimidid: error: unable to open hw:%d: %s\n", card, snd_strerror(err));
-		return NULL;
-	}
-
-	if((err = rpi_set_audio_route(handle, RPI_AUDIO_ROUTE_35mm)) < 0) {
-		fprintf(stderr, "pimidid: error: error configuring audio route: %s", snd_strerror(err));
+	if((err = rpi_set_audio_route(handle, route)) < 0) {
+		fprintf(stderr, "pimidid: error: error configuring audio route: %s\n", snd_strerror(err));
 		return NULL;
 	}
 
@@ -342,7 +352,7 @@ int main(int argc, char **argv)
 
 	printf("pimidid: info: starting up, pid = %d\n", (int)getpid());
 
-	snd_ctl_t *handle = open_bcm2835_card();
+	snd_ctl_t *handle = open_card(args.device, args.route);
 	if(handle == NULL)
 		return 1;
 
