@@ -30,6 +30,8 @@
 static struct parg_option argdefs[] = {
     {"nproc",     PARG_REQARG, NULL, 'n'},
     {"period",    PARG_REQARG, NULL, 'p'},
+    {"device",    PARG_REQARG, NULL, 'd'},
+    {"route",     PARG_REQARG, NULL, 'r'},
     {"help",      PARG_NOARG,  NULL, 'h'}
 };
 
@@ -38,19 +40,44 @@ typedef struct args_t
     const char *soundfont;
     int        nproc;
     int        period;
+    const char *device;
+    int        route;
 } args_t;
+
+static const char *USAGE_OPTIONS =
+    "Options:\n"
+    "  -h, --help       Display this message.\n"
+	"\n"
+    "  -n, --nproc      FluidSynth's \"synth.cpu-cores\" property. Defaults to 1.\n"
+	"\n"
+    "  -p, --period     FluidSynth's \"audio.period-size\" property. Defaults to 444.\n"
+	"\n"
+    "  --device=DEVICE  Override the ALSA device string. Example: \"hw:0\".\n"
+    "                   If set, don't attempt autodetection.\n"
+    "\n"
+    "  --route={-1,0,1,2,nochange,auto,35mm,hdmi}\n"
+    "                   Set the audio route. Defaults to \"35mm\".\n"
+    "                   Available values:\n"
+    "                   - -1, nochange = Don't attempt to change the audio route.\n"
+    "                   -  0, auto     = Route audio however the card decides.\n"
+    "                   -  1, 35mm     = Route audio over the 3.5mm jack.\n"
+    "                   -  2, hdmi     = Route audio over HDMI.\n"
+    ;
 
 static int parse_args(int argc, char **argv, args_t *args)
 {
-    int has_nproc = 0, has_period = 0;
+    int has_nproc = 0, has_period = 0, has_route = 0;
     unsigned long nproc  = 1;
     unsigned long period = 444; /* This seems enforced on RPi3. */
+    long          route  = RPI_AUDIO_ROUTE_35mm;
     struct parg_state ps;
 
     parg_init(&ps);
     args->soundfont  = NULL;
     args->period     = 0;
     args->nproc      = 0;
+    args->device     = NULL;
+    args->route      = 0;
 
     for(int c; (c = parg_getopt_long(&ps, argc, argv, "f:n:p:h", argdefs, NULL)) != -1; ) {
         switch(c) {
@@ -82,6 +109,34 @@ static int parse_args(int argc, char **argv, args_t *args)
                 has_period = 1;
                 break;
 
+            case 'd':
+                if(args->device != NULL)
+                    goto usage;
+                args->device = ps.optarg;
+                break;
+
+            case 'r':
+                if(has_route)
+                    goto usage;
+
+                if(strcmp("auto", ps.optarg) == 0) {
+                    route = RPI_AUDIO_ROUTE_AUTO;
+                } else if(strcmp("35mm", ps.optarg) == 0) {
+                    route = RPI_AUDIO_ROUTE_35mm;
+                } else if(strcmp("hdmi", ps.optarg) == 0) {
+                    route = RPI_AUDIO_ROUTE_HDMI;
+                } else if(strcmp("nochange", ps.optarg) == 0) {
+                    route = -1;
+                } else {
+                    errno = 0;
+                    route = strtol(ps.optarg, NULL, 10);
+                    if(errno == ERANGE || route < (RPI_AUDIO_ROUTE_MIN - 1) || route > RPI_AUDIO_ROUTE_MAX)
+                        goto usage;
+                }
+
+                has_route = 1;
+                break;
+
             case 'h':
             default:
                 goto usage;
@@ -93,10 +148,12 @@ static int parse_args(int argc, char **argv, args_t *args)
 
     args->nproc = (int)nproc;
     args->period = (int)period;
+    args->route  = (int)route;
     return 0;
 
 usage:
-    fprintf(stderr, "Usage: %s [<--nproc|-n> <nproc>] [--period|-p <period>] <soundfont>\n", argv[0]);
+    fprintf(stderr, "Usage: %s [OPTIONS] <soundfont>\n", argv[0]);
+    fputs(USAGE_OPTIONS, stderr);
     return -1;
 }
 
