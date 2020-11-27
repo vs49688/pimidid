@@ -80,7 +80,7 @@ int rpi_set_audio_route(snd_ctl_t *handle, int route)
     snd_ctl_elem_id_t *id;
     snd_ctl_elem_value_t *control;
 
-    if(handle == NULL || route < RPI_AUDIO_ROUTE_AUTO || route > RPI_AUDIO_ROUTE_HDMI)
+    if(handle == NULL || route < RPI_AUDIO_ROUTE_MIN || route > RPI_AUDIO_ROUTE_MAX)
         return -EINVAL;
 
     snd_ctl_elem_info_alloca(&info);

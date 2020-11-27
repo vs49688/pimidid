@@ -23,9 +23,11 @@ struct _snd_ctl;
 typedef struct _snd_ctl snd_ctl_t;
 
 enum {
-    RPI_AUDIO_ROUTE_AUTO = 0,
+    RPI_AUDIO_ROUTE_MIN  = 0,
+    RPI_AUDIO_ROUTE_AUTO = RPI_AUDIO_ROUTE_MIN,
     RPI_AUDIO_ROUTE_35mm = 1,
     RPI_AUDIO_ROUTE_HDMI = 2,
+    RPI_AUDIO_ROUTE_MAX  = RPI_AUDIO_ROUTE_HDMI
 };
 
 /* Get the index of the BCM2835 analog output. */
