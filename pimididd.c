@@ -174,7 +174,6 @@ void do_search_port(snd_seq_t *seq, PiMIDISearchProc proc, void *user)
 {
     snd_seq_client_info_t *cinfo;
     snd_seq_port_info_t *pinfo;
-    int count;
 
     snd_seq_client_info_alloca(&cinfo);
     snd_seq_port_info_alloca(&pinfo);
@@ -185,15 +184,13 @@ void do_search_port(snd_seq_t *seq, PiMIDISearchProc proc, void *user)
         /* reset query info */
         snd_seq_port_info_set_client(pinfo, snd_seq_client_info_get_client(cinfo));
         snd_seq_port_info_set_port(pinfo, -1);
-        count = 0;
         while (snd_seq_query_next_port(seq, pinfo) >= 0)
         {
             if(snd_seq_port_info_get_capability(pinfo) & SND_SEQ_PORT_CAP_NO_EXPORT)
                 continue;
 
-            if(proc(seq, cinfo, pinfo, count, user))
+            if(proc(seq, cinfo, pinfo, user))
                 return;
-            count++;
         }
     }
 }

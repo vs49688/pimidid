@@ -198,7 +198,7 @@ typedef struct pimidid_search
 } pimidid_search_t;
 
 /* Try to find the fluidsynth port. */
-static int locate_fluidstynth(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_port_info_t *pinfo, int count, void *user)
+static int locate_fluidstynth(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_port_info_t *pinfo, void *user)
 {
     pimidid_search_t *s = (pimidid_search_t*)user;
 
@@ -233,7 +233,7 @@ static int locate_fluidstynth(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_
     return 1;
 }
 
-static int locate_ports(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_port_info_t *pinfo, int count, void *user)
+static int locate_ports(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_port_info_t *pinfo, void *user)
 {
     pimidid_search_t *s = (pimidid_search_t*)user;
 
