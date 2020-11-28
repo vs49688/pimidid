@@ -179,9 +179,8 @@ static void error_handler(const char *file, int line, const char *function, int 
     vfprintf(fp, fmt, arg);
     va_end(arg);
 
-    if(err) {
+    if(err)
         fprintf(fp, ": %s", snd_strerror(err));
-    }
 
     fputc('\n', fp);
 }
@@ -357,8 +356,7 @@ int main(int argc, char **argv)
         return 1;
 
     pimidid_t pi;
-    if(pimidid_init(&pi, handle, args.soundfont, args.nproc, args.period) < 0)
-    {
+    if(pimidid_init(&pi, handle, args.soundfont, args.nproc, args.period) < 0) {
         fprintf(stderr, "pimidid: error: initialisation failure\n");
         snd_ctl_close(handle);
         return 1;
@@ -367,15 +365,13 @@ int main(int argc, char **argv)
     snd_lib_error_set_handler(error_handler);
 
     do_connect(&pi, -1);
-    for(;;)
-    {
+    for(;;) {
         fd_set fds;
         FD_ZERO(&fds);
         FD_SET(pi.monitor_fd, &fds);
 
         int ret = select(pi.monitor_fd + 1, &fds, NULL, NULL, NULL);
-        if(ret < 0 && errno == EINTR)
-        {
+        if(ret < 0 && errno == EINTR) {
             int sig = caught_signal;
             caught_signal = 0;
 
@@ -386,9 +382,7 @@ int main(int argc, char **argv)
                 break;
 
             do_connect(&pi, -1);
-        }
-        else if(ret > 0 && FD_ISSET(pi.monitor_fd, &fds))
-        {
+        } else if(ret > 0 && FD_ISSET(pi.monitor_fd, &fds)) {
             struct udev_device *dev = udev_monitor_receive_device(pi.monitor);
             if(!dev)
                 continue;
