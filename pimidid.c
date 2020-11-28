@@ -334,10 +334,12 @@ static snd_ctl_t *open_card(const char *device, int route)
 int main(int argc, char **argv)
 {
     PiMidiArgs args;
+    PiMIDICtx pi;
+    struct sigaction act;
+    snd_ctl_t *handle;
+
     if(parse_args(argc, argv, &args) < 0)
         return 2;
-
-    struct sigaction act;
     memset(&act, 0, sizeof(act));
     act.sa_handler = sighandler;
     act.sa_flags = 0;
@@ -353,11 +355,9 @@ int main(int argc, char **argv)
 
     printf("pimidid: info: starting up, pid = %d\n", (int)getpid());
 
-    snd_ctl_t *handle = open_card(args.device, args.route);
-    if(handle == NULL)
+    if((handle = open_card(args.device, args.route)) == NULL)
         return 1;
 
-    PiMIDICtx pi;
     if(pimidid_init(&pi, handle, args.soundfont, args.nproc, args.period) < 0) {
         fprintf(stderr, "pimidid: error: initialisation failure\n");
         snd_ctl_close(handle);
@@ -367,12 +367,12 @@ int main(int argc, char **argv)
     snd_lib_error_set_handler(error_handler);
 
     do_connect(&pi, -1);
-    for(;;) {
+    for(int ret;;) {
         fd_set fds;
         FD_ZERO(&fds);
         FD_SET(pi.monitor_fd, &fds);
 
-        int ret = select(pi.monitor_fd + 1, &fds, NULL, NULL, NULL);
+        ret = select(pi.monitor_fd + 1, &fds, NULL, NULL, NULL);
         if(ret < 0 && errno == EINTR) {
             int sig = caught_signal;
             caught_signal = 0;
@@ -385,21 +385,21 @@ int main(int argc, char **argv)
 
             do_connect(&pi, -1);
         } else if(ret > 0 && FD_ISSET(pi.monitor_fd, &fds)) {
-            struct udev_device *dev = udev_monitor_receive_device(pi.monitor);
-            if(!dev)
+            struct udev_device *dev;
+            const char *node;
+            unsigned int card;
+
+            if(!(dev = udev_monitor_receive_device(pi.monitor)))
                 continue;
 
-            const char *action = udev_device_get_action(dev);
-            if(strcmp("add", action) != 0)
+            if(strcmp("add", udev_device_get_action(dev)) != 0)
                 continue;
 
-            const char *node = udev_device_get_devnode(dev);
-            if(!node)
+            if(!(node = udev_device_get_devnode(dev)))
                 continue;
 
             /* FIXME: Is here a better way to do this? */
-            unsigned int card, dard;
-            if(sscanf(node, "/dev/snd/midiC%uD%u", &card, &dard) != 2)
+            if(sscanf(node, "/dev/snd/midiC%uD%*u", &card) != 2)
                 continue;
 
             udev_device_unref(dev);
