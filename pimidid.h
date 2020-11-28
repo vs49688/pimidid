@@ -52,7 +52,7 @@ int pimidid_init(
 void pimidid_deinit(PiMIDICtx *pi);
 int pimidid_connect(snd_seq_t *seq, snd_seq_port_info_t *source, snd_seq_port_info_t *sink);
 
-typedef int (*action_func_t)(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_port_info_t *pinfo, int count, void *user);
-void do_search_port(snd_seq_t *seq, action_func_t do_action, void *user);
+typedef int (*PiMIDISearchProc)(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_port_info_t *pinfo, int count, void *user);
+void do_search_port(snd_seq_t *seq, PiMIDISearchProc proc, void *user);
 
 #endif /* PIMIDID_H */

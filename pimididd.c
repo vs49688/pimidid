@@ -170,7 +170,7 @@ int pimidid_connect(snd_seq_t *seq, snd_seq_port_info_t *source, snd_seq_port_in
     return snd_seq_subscribe_port(seq, subs);
 }
 
-void do_search_port(snd_seq_t *seq, action_func_t do_action, void *user)
+void do_search_port(snd_seq_t *seq, PiMIDISearchProc proc, void *user)
 {
     snd_seq_client_info_t *cinfo;
     snd_seq_port_info_t *pinfo;
@@ -191,7 +191,7 @@ void do_search_port(snd_seq_t *seq, action_func_t do_action, void *user)
             if(snd_seq_port_info_get_capability(pinfo) & SND_SEQ_PORT_CAP_NO_EXPORT)
                 continue;
 
-            if(do_action(seq, cinfo, pinfo, count, user))
+            if(proc(seq, cinfo, pinfo, count, user))
                 return;
             count++;
         }
