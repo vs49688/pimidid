@@ -270,10 +270,12 @@ static int locate_ports(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_po
 */
 static void do_connect(PiMIDICtx *pi, int card)
 {
-    pimidid_search_t s;
-    memset(&s, 0, sizeof(s));
-    s.pi = pi;
-    s.card = (int)card;
+    pimidid_search_t s = {
+        .pi           = pi,
+        .card         = card,
+        .fluid_client = NULL,
+        .fluid_port   = NULL,
+    };
 
     /* Search for FluidSynth. Re-do this every time incase it crashed and was restarted. */
     do_search_port(pi->seq, locate_fluidstynth, &s);
