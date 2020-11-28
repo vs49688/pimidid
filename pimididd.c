@@ -24,6 +24,7 @@ static int locate_internal_fluid(snd_seq_t *seq, snd_seq_client_info_t *cinfo, s
 {
     PiMidiCtx *pi = user;
     const char *name;
+    (void)seq;
 
     assert(pi->fluid_port == NULL && pi->fluid_client == NULL);
 
