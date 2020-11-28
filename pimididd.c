@@ -18,6 +18,39 @@
 #include "pimidid.h"
 #include "rpi.h"
 
+#define perm_ok(pinfo,bits) ((snd_seq_port_info_get_capability(pinfo) & (bits)) == (bits))
+
+static int locate_internal_fluid(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_port_info_t *pinfo, void *user)
+{
+    PiMIDICtx *pi = user;
+    const char *name;
+
+    assert(pi->fluid_port == NULL && pi->fluid_client == NULL);
+
+    /* FluidSynth will set both the client and portname to "midi.portname" */
+    name = snd_seq_client_info_get_name(cinfo);
+    if(!fluid_settings_str_equal(pi->fl_settings, "midi.portname", name))
+        return 0;
+
+    if(!perm_ok(pinfo, SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE))
+        return 0;
+
+    name = snd_seq_port_info_get_name(pinfo);
+    if(!fluid_settings_str_equal(pi->fl_settings, "midi.portname", name))
+        return 0;
+
+
+    if((snd_seq_client_info_malloc(&pi->fluid_client) < 0))
+        return 0;
+
+    if((snd_seq_port_info_malloc(&pi->fluid_port) < 0))
+        return 0;
+
+    snd_seq_client_info_copy(pi->fluid_client, cinfo);
+    snd_seq_port_info_copy(pi->fluid_port, pinfo);
+    return 1;
+}
+
 int pimidid_init(
     PiMIDICtx *pi,
     snd_ctl_t *ctl,
@@ -30,13 +63,6 @@ int pimidid_init(
 
     pi->ctl = ctl;
     pi->monitor_fd = -1;
-
-    /* Alloc storage. */
-    if((snd_seq_client_info_malloc(&pi->_fluid_client) < 0))
-        goto failure;
-
-    if((snd_seq_port_info_malloc(&pi->_fluid_port) < 0))
-        goto failure;
 
     if(!(pi->fl_settings = new_fluid_settings()))
         goto failure;
@@ -81,6 +107,11 @@ int pimidid_init(
         goto failure;
 
     if((pi->fl_adriver = new_fluid_audio_driver(pi->fl_settings, pi->fl_synth)) == NULL)
+        goto failure;
+
+    do_search_port(pi->seq, locate_internal_fluid, pi);
+
+    if(pi->fluid_client == NULL || pi->fluid_port == NULL)
         goto failure;
 
     /* Setup udev. */
@@ -141,13 +172,13 @@ void pimidid_deinit(PiMIDICtx *pi)
         snd_seq_close(pi->seq);
     pi->seq = NULL;
 
-    if(pi->_fluid_client)
-        snd_seq_client_info_free(pi->_fluid_client);
-    pi->_fluid_client = NULL;
+    if(pi->fluid_client)
+        snd_seq_client_info_free(pi->fluid_client);
+    pi->fluid_client = NULL;
 
-    if(pi->_fluid_port)
-        snd_seq_port_info_free(pi->_fluid_port);
-    pi->_fluid_port = NULL;
+    if(pi->fluid_port)
+        snd_seq_port_info_free(pi->fluid_port);
+    pi->fluid_port = NULL;
 }
 
 int pimidid_connect(snd_seq_t *seq, snd_seq_port_info_t *source, snd_seq_port_info_t *sink)

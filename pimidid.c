@@ -157,9 +157,6 @@ usage:
     return -1;
 }
 
-/* Set to 1 to find our embedded FluidSynth's port. */
-#define SEARCH_EMBEDDED_SYNTH 1
-
 static void error_handler(const char *file, int line, const char *function, int err, const char *fmt, ...)
 {
     const char *errs;
@@ -196,42 +193,6 @@ typedef struct pimidid_search
     snd_seq_client_info_t *fluid_client;
     snd_seq_port_info_t *fluid_port;
 } pimidid_search_t;
-
-/* Try to find the fluidsynth port. */
-static int locate_fluidstynth(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_port_info_t *pinfo, void *user)
-{
-    pimidid_search_t *s = (pimidid_search_t*)user;
-
-    if(s->fluid_port)
-        return 0;
-
-#if SEARCH_EMBEDDED_SYNTH
-    /* FluidSynth will set both the client and portname to "midi.portname" */
-    const char *name = snd_seq_client_info_get_name(cinfo);
-    if(!fluid_settings_str_equal(s->pi->fl_settings, "midi.portname", name))
-        return 0;
-#else
-    const char *name = snd_seq_client_info_get_name(cinfo);
-    if(strstr(name, "FLUID") != name)
-        return 0;
-#endif
-
-    if(!perm_ok(pinfo, SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE))
-        return 0;
-
-    s->fluid_client = s->pi->_fluid_client;
-    snd_seq_client_info_copy(s->fluid_client, cinfo);
-
-    s->fluid_port = s->pi->_fluid_port;
-    snd_seq_port_info_copy(s->fluid_port, pinfo);
-
-#if SEARCH_EMBEDDED_SYNTH
-    const char *pname = snd_seq_port_info_get_name(s->fluid_port);
-    if(!fluid_settings_str_equal(s->pi->fl_settings, "midi.portname", pname))
-        return 0;
-#endif
-    return 1;
-}
 
 static int locate_ports(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_port_info_t *pinfo, void *user)
 {
@@ -273,19 +234,10 @@ static void do_connect(PiMIDICtx *pi, int card)
     pimidid_search_t s = {
         .pi           = pi,
         .card         = card,
-        .fluid_client = NULL,
-        .fluid_port   = NULL,
+        .fluid_client = pi->fluid_client,
+        .fluid_port   = pi->fluid_port,
     };
 
-    /* Search for FluidSynth. Re-do this every time incase it crashed and was restarted. */
-    do_search_port(pi->seq, locate_fluidstynth, &s);
-    if(!s.fluid_port)
-        return;
-
-    printf("pimidid: info: Found  FLUID port at %3d:%d...\n",
-        snd_seq_client_info_get_client(s.fluid_client),
-        snd_seq_port_info_get_port(s.fluid_port)
-    );
     do_search_port(pi->seq, locate_ports, &s);
 }
 
@@ -363,6 +315,12 @@ int main(int argc, char **argv)
         snd_ctl_close(handle);
         return 1;
     }
+
+    printf("pimidid: info: FluidSynth port at %3d:%d (%s)\n",
+        snd_seq_client_info_get_client(pi.fluid_client),
+        snd_seq_port_info_get_port(pi.fluid_port),
+        pi.fl_portname
+    );
 
     snd_lib_error_set_handler(error_handler);
 

@@ -37,9 +37,8 @@ typedef struct PiMIDICtx
     fluid_midi_driver_t  *fl_mdriver;
     fluid_audio_driver_t *fl_adriver;
 
-    /* Storage */
-    snd_seq_client_info_t *_fluid_client;
-    snd_seq_port_info_t *_fluid_port;
+    snd_seq_client_info_t *fluid_client;
+    snd_seq_port_info_t   *fluid_port;
 } PiMIDICtx;
 
 int pimidid_init(
