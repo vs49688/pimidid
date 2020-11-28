@@ -24,30 +24,30 @@
 
 typedef struct pimidid
 {
-	snd_ctl_t *ctl;
-	snd_seq_t *seq;
+    snd_ctl_t *ctl;
+    snd_seq_t *seq;
 
-	struct udev *udev;
-	struct udev_monitor *monitor;
-	int monitor_fd;
+    struct udev *udev;
+    struct udev_monitor *monitor;
+    int monitor_fd;
 
-	char 				 fl_portname[64];
-	fluid_settings_t     *fl_settings;
-	fluid_synth_t        *fl_synth;
-	fluid_midi_driver_t  *fl_mdriver;
-	fluid_audio_driver_t *fl_adriver;
+    char 				 fl_portname[64];
+    fluid_settings_t     *fl_settings;
+    fluid_synth_t        *fl_synth;
+    fluid_midi_driver_t  *fl_mdriver;
+    fluid_audio_driver_t *fl_adriver;
 
-	/* Storage */
-	snd_seq_client_info_t *_fluid_client;
-	snd_seq_port_info_t *_fluid_port;
+    /* Storage */
+    snd_seq_client_info_t *_fluid_client;
+    snd_seq_port_info_t *_fluid_port;
 } pimidid_t;
 
 int pimidid_init(
-	pimidid_t *pi,
-	snd_ctl_t *ctl,
-	const char *sf2,
-	int cpu_cores,
-	int period_size
+    pimidid_t *pi,
+    snd_ctl_t *ctl,
+    const char *sf2,
+    int cpu_cores,
+    int period_size
 );
 void pimidid_deinit(pimidid_t *pi);
 int pimidid_connect(snd_seq_t *seq, snd_seq_port_info_t *source, snd_seq_port_info_t *sink);

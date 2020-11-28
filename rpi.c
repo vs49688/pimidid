@@ -23,11 +23,11 @@
 
 int rpi_get_alsa_index(int *card)
 {
-	int err, card_ = -1;
+    int err, card_ = -1;
     char *name = NULL;
 
     if(card == NULL)
-    	return -EINVAL;
+        return -EINVAL;
 
     while((err = snd_card_next(&card_)) >= 0) {
         if(name) {
@@ -36,18 +36,18 @@ int rpi_get_alsa_index(int *card)
         }
 
         if(err < 0) {
-        	errno = err;
-        	SYSERR("snd_card_next(%d)", card_);
+            errno = err;
+            SYSERR("snd_card_next(%d)", card_);
             return err;
         }
 
         if(card_ == -1)
-        	return -ENOENT;
+            return -ENOENT;
 
         if((err = snd_card_get_name(card_, &name)) < 0) {
-        	errno = err;
-        	SYSERR("snd_card_get_name(%d)", card_);
-        	return err;
+            errno = err;
+            SYSERR("snd_card_get_name(%d)", card_);
+            return err;
         }
 
         /* Explicitly skip this. */
@@ -75,7 +75,7 @@ int rpi_snd_ctl_open_by_index(snd_ctl_t **ctl, int index, int mode)
 
 int rpi_set_audio_route(snd_ctl_t *handle, int route)
 {
-	int err;
+    int err;
     snd_ctl_elem_info_t *info;
     snd_ctl_elem_id_t *id;
     snd_ctl_elem_value_t *control;
@@ -96,13 +96,13 @@ int rpi_set_audio_route(snd_ctl_t *handle, int route)
     snd_ctl_elem_id_set_name(id, "PCM Playback Route");
 
     /* NB: Could also use */
-	//err = snd_ctl_ascii_elem_id_parse(id, "numid=3,iface=MIXER,name='PCM Playback Route'");
+    //err = snd_ctl_ascii_elem_id_parse(id, "numid=3,iface=MIXER,name='PCM Playback Route'");
 
     snd_ctl_elem_info_set_id(info, id);
 
     if((err = snd_ctl_elem_info(handle, info)) < 0) {
-    	errno = err;
-    	SYSERR("snd_ctl_elem_info()");
+        errno = err;
+        SYSERR("snd_ctl_elem_info()");
         return err;
     }
 
@@ -111,8 +111,8 @@ int rpi_set_audio_route(snd_ctl_t *handle, int route)
     snd_ctl_elem_value_set_integer(control, 0, route);
 
     if((err = snd_ctl_elem_write(handle, control)) < 0) {
-    	errno = err;
-    	SYSERR("snd_ctl_elem_write()");
+        errno = err;
+        SYSERR("snd_ctl_elem_write()");
         return err;
     }
 

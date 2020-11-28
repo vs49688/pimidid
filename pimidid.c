@@ -47,11 +47,11 @@ typedef struct args_t
 static const char *USAGE_OPTIONS =
     "Options:\n"
     "  -h, --help       Display this message.\n"
-	"\n"
+    "\n"
     "  -n, --nproc      FluidSynth's \"synth.cpu-cores\" property. Defaults to 1.\n"
-	"\n"
+    "\n"
     "  -p, --period     FluidSynth's \"audio.period-size\" property. Defaults to 444.\n"
-	"\n"
+    "\n"
     "  --device=DEVICE  Override the ALSA device string. Example: \"hw:0\".\n"
     "                   If set, don't attempt autodetection.\n"
     "\n"
@@ -162,106 +162,106 @@ usage:
 
 static void error_handler(const char *file, int line, const char *function, int err, const char *fmt, ...)
 {
-	const char *errs;
-	FILE *fp;
-	va_list arg;
+    const char *errs;
+    FILE *fp;
+    va_list arg;
 
-	if(err) {
-		errs = "error";
-		fp = stderr;
-	} else {
-		errs = "info";
-		fp = stdout;
-	}
+    if(err) {
+        errs = "error";
+        fp = stderr;
+    } else {
+        errs = "info";
+        fp = stdout;
+    }
 
-	fprintf(fp, "alsa: %s: %s:%i:(%s):", errs, file, line, function);
-	va_start(arg, fmt);
-	vfprintf(fp, fmt, arg);
-	va_end(arg);
+    fprintf(fp, "alsa: %s: %s:%i:(%s):", errs, file, line, function);
+    va_start(arg, fmt);
+    vfprintf(fp, fmt, arg);
+    va_end(arg);
 
-	if(err) {
-		fprintf(fp, ": %s", snd_strerror(err));
-	}
+    if(err) {
+        fprintf(fp, ": %s", snd_strerror(err));
+    }
 
-	fputc('\n', fp);
+    fputc('\n', fp);
 }
 
 #define perm_ok(pinfo,bits) ((snd_seq_port_info_get_capability(pinfo) & (bits)) == (bits))
 
 typedef struct pimidid_search
 {
-	pimidid_t *pi;
+    pimidid_t *pi;
 
-	int card;
+    int card;
 
-	snd_seq_client_info_t *fluid_client;
-	snd_seq_port_info_t *fluid_port;
+    snd_seq_client_info_t *fluid_client;
+    snd_seq_port_info_t *fluid_port;
 } pimidid_search_t;
 
 /* Try to find the fluidsynth port. */
 static int locate_fluidstynth(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_port_info_t *pinfo, int count, void *user)
 {
-	pimidid_search_t *s = (pimidid_search_t*)user;
+    pimidid_search_t *s = (pimidid_search_t*)user;
 
-	if(s->fluid_port)
-		return 0;
+    if(s->fluid_port)
+        return 0;
 
 #if SEARCH_EMBEDDED_SYNTH
-	/* FluidSynth will set both the client and portname to "midi.portname" */
-	const char *name = snd_seq_client_info_get_name(cinfo);
-	if(!fluid_settings_str_equal(s->pi->fl_settings, "midi.portname", name))
-		return 0;
+    /* FluidSynth will set both the client and portname to "midi.portname" */
+    const char *name = snd_seq_client_info_get_name(cinfo);
+    if(!fluid_settings_str_equal(s->pi->fl_settings, "midi.portname", name))
+        return 0;
 #else
-	const char *name = snd_seq_client_info_get_name(cinfo);
-	if(strstr(name, "FLUID") != name)
-		return 0;
+    const char *name = snd_seq_client_info_get_name(cinfo);
+    if(strstr(name, "FLUID") != name)
+        return 0;
 #endif
 
-	if(!perm_ok(pinfo, SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE))
-		return 0;
+    if(!perm_ok(pinfo, SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE))
+        return 0;
 
-	s->fluid_client = s->pi->_fluid_client;
-	snd_seq_client_info_copy(s->fluid_client, cinfo);
+    s->fluid_client = s->pi->_fluid_client;
+    snd_seq_client_info_copy(s->fluid_client, cinfo);
 
-	s->fluid_port = s->pi->_fluid_port;
-	snd_seq_port_info_copy(s->fluid_port, pinfo);
+    s->fluid_port = s->pi->_fluid_port;
+    snd_seq_port_info_copy(s->fluid_port, pinfo);
 
 #if SEARCH_EMBEDDED_SYNTH
-	const char *pname = snd_seq_port_info_get_name(s->fluid_port);
-	if(!fluid_settings_str_equal(s->pi->fl_settings, "midi.portname", pname))
-		return 0;
+    const char *pname = snd_seq_port_info_get_name(s->fluid_port);
+    if(!fluid_settings_str_equal(s->pi->fl_settings, "midi.portname", pname))
+        return 0;
 #endif
-	return 1;
+    return 1;
 }
 
 static int locate_ports(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_port_info_t *pinfo, int count, void *user)
 {
-	pimidid_search_t *s = (pimidid_search_t*)user;
+    pimidid_search_t *s = (pimidid_search_t*)user;
 
-	assert(s->fluid_port);
+    assert(s->fluid_port);
 
-	/* If we have a udev card number, see if it matches the alsa one. */
-	if(s->card >= 0 && s->card != snd_seq_client_info_get_card(cinfo))
-		return 0;
+    /* If we have a udev card number, see if it matches the alsa one. */
+    if(s->card >= 0 && s->card != snd_seq_client_info_get_card(cinfo))
+        return 0;
 
-	/* Skip the "System" client. */
-	if(snd_seq_client_info_get_client(cinfo) == 0)
-		return 0;
+    /* Skip the "System" client. */
+    if(snd_seq_client_info_get_client(cinfo) == 0)
+        return 0;
 
-	if(!perm_ok(pinfo, SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_SUBS_READ))
-		return 0;
+    if(!perm_ok(pinfo, SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_SUBS_READ))
+        return 0;
 
-	printf("pimidid: info: Found DEVICE port at %3d:%d, connecting to %d:%d...\n",
-		snd_seq_client_info_get_client(cinfo),
-		snd_seq_port_info_get_port(pinfo),
-		snd_seq_client_info_get_client(s->fluid_client),
-		snd_seq_port_info_get_port(s->fluid_port)
-	);
+    printf("pimidid: info: Found DEVICE port at %3d:%d, connecting to %d:%d...\n",
+        snd_seq_client_info_get_client(cinfo),
+        snd_seq_port_info_get_port(pinfo),
+        snd_seq_client_info_get_client(s->fluid_client),
+        snd_seq_port_info_get_port(s->fluid_port)
+    );
 
-	if(pimidid_connect(seq, pinfo, s->fluid_port) < 0)
-		printf("pimidid: warning: Connection failed (%s)\n", snd_strerror(errno));
+    if(pimidid_connect(seq, pinfo, s->fluid_port) < 0)
+        printf("pimidid: warning: Connection failed (%s)\n", snd_strerror(errno));
 
-	return 0;
+    return 0;
 }
 
 /*
@@ -271,149 +271,149 @@ static int locate_ports(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_po
 */
 static void do_connect(pimidid_t *pi, int card)
 {
-	pimidid_search_t s;
-	memset(&s, 0, sizeof(s));
-	s.pi = pi;
-	s.card = (int)card;
+    pimidid_search_t s;
+    memset(&s, 0, sizeof(s));
+    s.pi = pi;
+    s.card = (int)card;
 
-	/* Search for FluidSynth. Re-do this every time incase it crashed and was restarted. */
-	do_search_port(pi->seq, locate_fluidstynth, &s);
-	if(!s.fluid_port)
-		return;
+    /* Search for FluidSynth. Re-do this every time incase it crashed and was restarted. */
+    do_search_port(pi->seq, locate_fluidstynth, &s);
+    if(!s.fluid_port)
+        return;
 
-	printf("pimidid: info: Found  FLUID port at %3d:%d...\n",
-		snd_seq_client_info_get_client(s.fluid_client),
-		snd_seq_port_info_get_port(s.fluid_port)
-	);
-	do_search_port(pi->seq, locate_ports, &s);
+    printf("pimidid: info: Found  FLUID port at %3d:%d...\n",
+        snd_seq_client_info_get_client(s.fluid_client),
+        snd_seq_port_info_get_port(s.fluid_port)
+    );
+    do_search_port(pi->seq, locate_ports, &s);
 }
 
 volatile sig_atomic_t caught_signal = 0;
 
 static void sighandler(int signum)
 {
-	caught_signal = signum;
+    caught_signal = signum;
 }
 
 static snd_ctl_t *open_card(const char *device, int route)
 {
-	int err, card;
-	snd_ctl_t *handle;
+    int err, card;
+    snd_ctl_t *handle;
 
-	if(device == NULL) {
-		if((err = rpi_get_alsa_index(&card)) < 0) {
-			fprintf(stderr, "pimidid: error: unable to locate BCM2835 card: %s\n", snd_strerror(err));
-			return NULL;
-		}
+    if(device == NULL) {
+        if((err = rpi_get_alsa_index(&card)) < 0) {
+            fprintf(stderr, "pimidid: error: unable to locate BCM2835 card: %s\n", snd_strerror(err));
+            return NULL;
+        }
 
-		printf("pimidid: info: found BCM2835 card at hw:%d\n", card);
+        printf("pimidid: info: found BCM2835 card at hw:%d\n", card);
 
-		if((err = rpi_snd_ctl_open_by_index(&handle, card, 0)) < 0) {
-			fprintf(stderr, "pimidid: error: unable to open hw:%d: %s\n", card, snd_strerror(err));
-			return NULL;
-		}
-	} else {
-		if((err = snd_ctl_open(&handle, device, 0)) < 0) {
-			fprintf(stderr, "pimidid: error: unable to open %s: %s\n", device, snd_strerror(err));
-			return NULL;
-		}
-	}
+        if((err = rpi_snd_ctl_open_by_index(&handle, card, 0)) < 0) {
+            fprintf(stderr, "pimidid: error: unable to open hw:%d: %s\n", card, snd_strerror(err));
+            return NULL;
+        }
+    } else {
+        if((err = snd_ctl_open(&handle, device, 0)) < 0) {
+            fprintf(stderr, "pimidid: error: unable to open %s: %s\n", device, snd_strerror(err));
+            return NULL;
+        }
+    }
 
-	if(route < RPI_AUDIO_ROUTE_MIN)
-		return handle;
+    if(route < RPI_AUDIO_ROUTE_MIN)
+        return handle;
 
-	if((err = rpi_set_audio_route(handle, route)) < 0) {
-		fprintf(stderr, "pimidid: error: error configuring audio route: %s\n", snd_strerror(err));
-		return NULL;
-	}
+    if((err = rpi_set_audio_route(handle, route)) < 0) {
+        fprintf(stderr, "pimidid: error: error configuring audio route: %s\n", snd_strerror(err));
+        return NULL;
+    }
 
-	return handle;
+    return handle;
 }
 
 int main(int argc, char **argv)
 {
-	args_t args;
-	if(parse_args(argc, argv, &args) < 0)
-		return 2;
+    args_t args;
+    if(parse_args(argc, argv, &args) < 0)
+        return 2;
 
-	struct sigaction act;
-	memset(&act, 0, sizeof(act));
-	act.sa_handler = sighandler;
-	act.sa_flags = 0;
-	sigemptyset(&act.sa_mask);
-	sigaddset(&act.sa_mask, SIGTERM);
-	sigaddset(&act.sa_mask, SIGINT);
-	sigaddset(&act.sa_mask, SIGHUP);
-	act.sa_restorer = NULL;
+    struct sigaction act;
+    memset(&act, 0, sizeof(act));
+    act.sa_handler = sighandler;
+    act.sa_flags = 0;
+    sigemptyset(&act.sa_mask);
+    sigaddset(&act.sa_mask, SIGTERM);
+    sigaddset(&act.sa_mask, SIGINT);
+    sigaddset(&act.sa_mask, SIGHUP);
+    act.sa_restorer = NULL;
 
-	sigaction(SIGTERM, &act, NULL);
-	sigaction(SIGINT, &act, NULL);
-	sigaction(SIGHUP, &act, NULL);
+    sigaction(SIGTERM, &act, NULL);
+    sigaction(SIGINT, &act, NULL);
+    sigaction(SIGHUP, &act, NULL);
 
-	printf("pimidid: info: starting up, pid = %d\n", (int)getpid());
+    printf("pimidid: info: starting up, pid = %d\n", (int)getpid());
 
-	snd_ctl_t *handle = open_card(args.device, args.route);
-	if(handle == NULL)
-		return 1;
+    snd_ctl_t *handle = open_card(args.device, args.route);
+    if(handle == NULL)
+        return 1;
 
-	pimidid_t pi;
-	if(pimidid_init(&pi, handle, args.soundfont, args.nproc, args.period) < 0)
-	{
-		fprintf(stderr, "pimidid: error: initialisation failure\n");
-		snd_ctl_close(handle);
-		return 1;
-	}
+    pimidid_t pi;
+    if(pimidid_init(&pi, handle, args.soundfont, args.nproc, args.period) < 0)
+    {
+        fprintf(stderr, "pimidid: error: initialisation failure\n");
+        snd_ctl_close(handle);
+        return 1;
+    }
 
-	snd_lib_error_set_handler(error_handler);
+    snd_lib_error_set_handler(error_handler);
 
-	do_connect(&pi, -1);
-	for(;;)
-	{
-		fd_set fds;
-		FD_ZERO(&fds);
-		FD_SET(pi.monitor_fd, &fds);
+    do_connect(&pi, -1);
+    for(;;)
+    {
+        fd_set fds;
+        FD_ZERO(&fds);
+        FD_SET(pi.monitor_fd, &fds);
 
-		int ret = select(pi.monitor_fd + 1, &fds, NULL, NULL, NULL);
-		if(ret < 0 && errno == EINTR)
-		{
-			int sig = caught_signal;
-			caught_signal = 0;
+        int ret = select(pi.monitor_fd + 1, &fds, NULL, NULL, NULL);
+        if(ret < 0 && errno == EINTR)
+        {
+            int sig = caught_signal;
+            caught_signal = 0;
 
-			if(sig)
-				printf("pimidid: trace: caught signal %d\n", sig);
+            if(sig)
+                printf("pimidid: trace: caught signal %d\n", sig);
 
-			if(sig == SIGINT || sig == SIGTERM)
-				break;
+            if(sig == SIGINT || sig == SIGTERM)
+                break;
 
-			do_connect(&pi, -1);
-		}
-		else if(ret > 0 && FD_ISSET(pi.monitor_fd, &fds))
-		{
-			struct udev_device *dev = udev_monitor_receive_device(pi.monitor);
-			if(!dev)
-				continue;
+            do_connect(&pi, -1);
+        }
+        else if(ret > 0 && FD_ISSET(pi.monitor_fd, &fds))
+        {
+            struct udev_device *dev = udev_monitor_receive_device(pi.monitor);
+            if(!dev)
+                continue;
 
-			const char *action = udev_device_get_action(dev);
-			if(strcmp("add", action) != 0)
-				continue;
+            const char *action = udev_device_get_action(dev);
+            if(strcmp("add", action) != 0)
+                continue;
 
-			const char *node = udev_device_get_devnode(dev);
-			if(!node)
-				continue;
+            const char *node = udev_device_get_devnode(dev);
+            if(!node)
+                continue;
 
-			/* FIXME: Is here a better way to do this? */
-			unsigned int card, dard;
-			if(sscanf(node, "/dev/snd/midiC%uD%u", &card, &dard) != 2)
-				continue;
+            /* FIXME: Is here a better way to do this? */
+            unsigned int card, dard;
+            if(sscanf(node, "/dev/snd/midiC%uD%u", &card, &dard) != 2)
+                continue;
 
-			udev_device_unref(dev);
+            udev_device_unref(dev);
 
-			do_connect(&pi, card);
-		}
-	}
+            do_connect(&pi, card);
+        }
+    }
 
-	pimidid_deinit(&pi);
-	snd_ctl_close(handle);
-	snd_config_update_free_global();
-	return 0;
+    pimidid_deinit(&pi);
+    snd_ctl_close(handle);
+    snd_config_update_free_global();
+    return 0;
 }
