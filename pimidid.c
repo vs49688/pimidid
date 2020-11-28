@@ -35,14 +35,14 @@ static struct parg_option argdefs[] = {
     {"help",      PARG_NOARG,  NULL, 'h'}
 };
 
-typedef struct args_t
+typedef struct PiMidiArgs
 {
     const char *soundfont;
     int        nproc;
     int        period;
     const char *device;
     int        route;
-} args_t;
+} PiMidiArgs;
 
 static const char *USAGE_OPTIONS =
     "Options:\n"
@@ -64,7 +64,7 @@ static const char *USAGE_OPTIONS =
     "                   -  2, hdmi     = Route audio over HDMI.\n"
     ;
 
-static int parse_args(int argc, char **argv, args_t *args)
+static int parse_args(int argc, char **argv, PiMidiArgs *args)
 {
     int has_nproc = 0, has_period = 0, has_route = 0;
     unsigned long nproc  = 1;
@@ -331,7 +331,7 @@ static snd_ctl_t *open_card(const char *device, int route)
 
 int main(int argc, char **argv)
 {
-    args_t args;
+    PiMidiArgs args;
     if(parse_args(argc, argv, &args) < 0)
         return 2;
 
