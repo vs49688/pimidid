@@ -186,7 +186,7 @@ static void error_handler(const char *file, int line, const char *function, int 
 
 typedef struct pimidid_search
 {
-    PiMIDICtx *pi;
+    PiMidiCtx *pi;
 
     int card;
 
@@ -229,7 +229,7 @@ static int locate_ports(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_po
 ** - Scan and connect each readable port on the given card to the FluidSynth port.
 **   - If card is negative, all devices match.
 */
-static void do_connect(PiMIDICtx *pi, int card)
+static void do_connect(PiMidiCtx *pi, int card)
 {
     pimidid_search_t s = {
         .pi           = pi,
@@ -286,7 +286,7 @@ static snd_ctl_t *open_card(const char *device, int route)
 int main(int argc, char **argv)
 {
     PiMidiArgs args;
-    PiMIDICtx pi;
+    PiMidiCtx pi;
     struct sigaction act;
     snd_ctl_t *handle;
 

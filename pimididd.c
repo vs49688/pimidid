@@ -22,7 +22,7 @@
 
 static int locate_internal_fluid(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_port_info_t *pinfo, void *user)
 {
-    PiMIDICtx *pi = user;
+    PiMidiCtx *pi = user;
     const char *name;
 
     assert(pi->fluid_port == NULL && pi->fluid_client == NULL);
@@ -52,14 +52,14 @@ static int locate_internal_fluid(snd_seq_t *seq, snd_seq_client_info_t *cinfo, s
 }
 
 int pimidid_init(
-    PiMIDICtx *pi,
+    PiMidiCtx *pi,
     snd_ctl_t *ctl,
     const char *sf2,
     int cpu_cores,
     int period_size
 )
 {
-    memset(pi, 0, sizeof(PiMIDICtx));
+    memset(pi, 0, sizeof(PiMidiCtx));
 
     pi->ctl = ctl;
     pi->monitor_fd = -1;
@@ -136,7 +136,7 @@ failure:
     return -1;
 }
 
-void pimidid_deinit(PiMIDICtx *pi)
+void pimidid_deinit(PiMidiCtx *pi)
 {
     if(!pi)
         return;
