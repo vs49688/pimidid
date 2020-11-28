@@ -19,14 +19,14 @@
 #include "rpi.h"
 
 int pimidid_init(
-    pimidid_t *pi,
+    PiMIDICtx *pi,
     snd_ctl_t *ctl,
     const char *sf2,
     int cpu_cores,
     int period_size
 )
 {
-    memset(pi, 0, sizeof(pimidid_t));
+    memset(pi, 0, sizeof(PiMIDICtx));
 
     pi->ctl = ctl;
     pi->monitor_fd = -1;
@@ -105,7 +105,7 @@ failure:
     return -1;
 }
 
-void pimidid_deinit(pimidid_t *pi)
+void pimidid_deinit(PiMIDICtx *pi)
 {
     if(!pi)
         return;

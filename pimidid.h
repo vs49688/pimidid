@@ -22,7 +22,7 @@
 #include <alsa/asoundlib.h>
 #include <fluidsynth.h>
 
-typedef struct pimidid
+typedef struct PiMIDICtx
 {
     snd_ctl_t *ctl;
     snd_seq_t *seq;
@@ -40,16 +40,16 @@ typedef struct pimidid
     /* Storage */
     snd_seq_client_info_t *_fluid_client;
     snd_seq_port_info_t *_fluid_port;
-} pimidid_t;
+} PiMIDICtx;
 
 int pimidid_init(
-    pimidid_t *pi,
+    PiMIDICtx *pi,
     snd_ctl_t *ctl,
     const char *sf2,
     int cpu_cores,
     int period_size
 );
-void pimidid_deinit(pimidid_t *pi);
+void pimidid_deinit(PiMIDICtx *pi);
 int pimidid_connect(snd_seq_t *seq, snd_seq_port_info_t *source, snd_seq_port_info_t *sink);
 
 typedef int (*action_func_t)(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_port_info_t *pinfo, int count, void *user);

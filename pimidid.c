@@ -189,7 +189,7 @@ static void error_handler(const char *file, int line, const char *function, int 
 
 typedef struct pimidid_search
 {
-    pimidid_t *pi;
+    PiMIDICtx *pi;
 
     int card;
 
@@ -268,7 +268,7 @@ static int locate_ports(snd_seq_t *seq, snd_seq_client_info_t *cinfo, snd_seq_po
 ** - Scan and connect each readable port on the given card to the FluidSynth port.
 **   - If card is negative, all devices match.
 */
-static void do_connect(pimidid_t *pi, int card)
+static void do_connect(PiMIDICtx *pi, int card)
 {
     pimidid_search_t s;
     memset(&s, 0, sizeof(s));
@@ -355,7 +355,7 @@ int main(int argc, char **argv)
     if(handle == NULL)
         return 1;
 
-    pimidid_t pi;
+    PiMIDICtx pi;
     if(pimidid_init(&pi, handle, args.soundfont, args.nproc, args.period) < 0) {
         fprintf(stderr, "pimidid: error: initialisation failure\n");
         snd_ctl_close(handle);
